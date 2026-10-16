@@ -2,8 +2,6 @@ import { describe, expect, it } from 'vitest'
 import type { Transaction } from '../../../types/domain.ts'
 import { filterTransactions } from './filterTransactions.ts'
 
-// Las pruebas se ejecutan con TZ=America/Bogota (UTC-5), definido en vitest.config.ts.
-
 const buildTransaction = (overrides: Partial<Transaction>): Transaction => ({
   id: 'TXN-000',
   dateTime: '2026-07-21T09:15:00-05:00',

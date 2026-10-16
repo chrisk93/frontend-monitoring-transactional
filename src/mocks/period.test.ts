@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { getPeriodStart, isWithinPeriod } from './period.ts'
 
-// Las pruebas se ejecutan con TZ=America/Bogota (UTC-5), definido en vitest.config.ts.
 const local = (value: string) => new Date(`${value}-05:00`)
 
 describe('getPeriodStart', () => {
