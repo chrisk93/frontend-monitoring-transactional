@@ -1,0 +1,17 @@
+@use '../../styles/colors';
+@use '../../styles/tokens';
+
+.error-state {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$space-3;
+  align-items: center;
+  padding: tokens.$space-6;
+  text-align: center;
+  background-color: colors.$color-error-background;
+  border-radius: tokens.$radius-md;
+
+  &__message {
+    color: colors.$color-error;
+  }
+}

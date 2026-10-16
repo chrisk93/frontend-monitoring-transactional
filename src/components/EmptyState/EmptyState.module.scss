@@ -1,0 +1,8 @@
+@use '../../styles/colors';
+@use '../../styles/tokens';
+
+.empty-state {
+  padding: tokens.$space-8 tokens.$space-4;
+  color: colors.$color-text-muted;
+  text-align: center;
+}
