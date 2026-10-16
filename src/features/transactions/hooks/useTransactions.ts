@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getTransactions } from '../../../services/dashboardApi.ts'
-import { normalizeError } from '../../../services/http/normalizeError.ts'
 import type { Period } from '../../../types/domain.ts'
+import { runCancellableRequest } from '../../../utils/runCancellableRequest.ts'
 import type { TransactionsState } from '../context/transactionsReducer.ts'
 import { useTransactionsDispatch } from './useTransactionsDispatch.ts'
 import { useTransactionsState } from './useTransactionsState.ts'
@@ -24,16 +24,7 @@ export const useTransactions = (period: Period): UseTransactionsResult => {
 
     const load = async () => {
       dispatch({ type: 'FETCH_START', period })
-
-      try {
-        const payload = await getTransactions(period, controller.signal)
-        if (!controller.signal.aborted) dispatch({ type: 'FETCH_SUCCESS', payload })
-      } catch (error) {
-        const appError = normalizeError(error)
-        if (appError.kind !== 'cancelled' && !controller.signal.aborted) {
-          dispatch({ type: 'FETCH_FAILURE', error: appError })
-        }
-      }
+      await runCancellableRequest((signal) => getTransactions(period, signal), controller.signal, dispatch)
     }
 
     void load()
