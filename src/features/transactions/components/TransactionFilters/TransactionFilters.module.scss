@@ -1,0 +1,46 @@
+@use '../../../../styles/colors';
+@use '../../../../styles/mixins';
+@use '../../../../styles/tokens';
+
+.transaction-filters {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: tokens.$space-3;
+
+  @include mixins.from-tablet {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: tokens.$space-1;
+
+    label {
+      font-size: tokens.$font-size-sm;
+      font-weight: tokens.$font-weight-semibold;
+      color: colors.$color-text-muted;
+    }
+
+    input,
+    select {
+      @include mixins.focus-ring;
+
+      min-height: 2.5rem;
+      padding: tokens.$space-2 tokens.$space-3;
+      background-color: colors.$color-surface;
+      border: 1px solid colors.$color-border;
+      border-radius: tokens.$radius-sm;
+
+      &[aria-invalid='true'] {
+        border-color: colors.$color-error;
+      }
+    }
+  }
+
+  &__error {
+    grid-column: 1 / -1;
+    font-size: tokens.$font-size-sm;
+    color: colors.$color-error;
+  }
+}
