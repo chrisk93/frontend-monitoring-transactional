@@ -1,0 +1,27 @@
+// Paleta bancaria. Todas las combinaciones de texto/fondo cumplen contraste WCAG AA (≥ 4.5:1).
+
+// Marca
+$color-header: #0a2540;
+$color-primary: #0b3b75;
+$color-primary-hover: #082c58;
+$color-focus: #2563eb;
+
+// Neutros
+$color-background: #f4f6f9;
+$color-surface: #ffffff;
+$color-border: #d8dee6;
+$color-text: #1f2937;
+$color-text-muted: #4b5563;
+$color-text-inverse: #ffffff;
+
+// Retroalimentación
+$color-error: #b91c1c;
+$color-error-background: #fee2e2;
+
+// Estados de transacción: texto y fondo del badge
+$status-colors: (
+  completed: (text: #166534, background: #dcfce7),
+  pending: (text: #92400e, background: #fef3c7),
+  rejected: (text: #991b1b, background: #fee2e2),
+  returned: (text: #5b21b6, background: #ede9fe),
+);
