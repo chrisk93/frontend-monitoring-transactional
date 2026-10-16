@@ -1,3 +1,5 @@
+import { roundToCents } from './roundToCents.ts'
+
 const LOCALE = 'es-CO'
 
 const integerFormatter = new Intl.NumberFormat(LOCALE, {
@@ -10,8 +12,6 @@ const decimalFormatter = new Intl.NumberFormat(LOCALE, {
   maximumFractionDigits: 2,
   useGrouping: 'always',
 })
-
-const roundToCents = (value: number): number => Math.round(value * 100) / 100
 
 /**
  * RN-05: formatea un monto en COP como `$1.234.567 COP` o `$1.234.567,10 COP`.
