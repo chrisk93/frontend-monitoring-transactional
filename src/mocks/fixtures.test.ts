@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { validateAmount } from '../features/transactions/domain/validateAmount.ts'
 import { mapTransactionDetail } from '../services/mappers.ts'
 import { PERIODS } from '../types/domain.ts'
-import { createFixtures } from './fixtures.ts'
+import { summarizeCashFlow } from './cashFlow.ts'
+import { OPENING_BALANCE, createFixtures } from './fixtures.ts'
 import { isWithinPeriod } from './period.ts'
 
 const NOW = new Date('2026-07-23T14:00:00-05:00')
@@ -127,6 +128,20 @@ describe('createFixtures', () => {
 
     // Assert
     expect(fixtures.every(({ status, statusHistory }) => statusHistory.at(-1)?.status === status)).toBe(true)
+  })
+
+  it('mantiene el saldo de la cuenta positivo en todo el historial', () => {
+    // Arrange
+    const chronological = createFixtures(NOW).toReversed()
+
+    // Act
+    const balances = chronological.map((_, index) => {
+      const { totalIncome, totalExpense } = summarizeCashFlow(chronological.slice(0, index + 1))
+      return OPENING_BALANCE + totalIncome - totalExpense
+    })
+
+    // Assert
+    expect(Math.min(...balances)).toBeGreaterThan(0)
   })
 
   it('cumple el contrato de la API: cada fixture pasa la validación de los mappers', () => {

@@ -2,7 +2,7 @@ import type { StatusChangeDto, TransactionDetailDto } from '../types/api.ts'
 import type { Channel, TransactionStatus, TransactionType } from '../types/domain.ts'
 
 /** Saldo de la cuenta antes de la transacción más antigua de las fixtures. */
-export const OPENING_BALANCE = 20_000_000
+export const OPENING_BALANCE = 50_000_000
 
 const MINUTE_MS = 60_000
 
