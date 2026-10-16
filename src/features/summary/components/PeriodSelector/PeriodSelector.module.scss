@@ -1,0 +1,7 @@
+@use '../../../../styles/tokens';
+
+.period-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: tokens.$space-2;
+}

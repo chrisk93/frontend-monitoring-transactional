@@ -1,0 +1,30 @@
+@use '../../../../styles/colors';
+@use '../../../../styles/mixins';
+@use '../../../../styles/tokens';
+
+.summary-panel {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$space-4;
+
+  &__title {
+    font-size: tokens.$font-size-lg;
+    font-weight: tokens.$font-weight-semibold;
+    color: colors.$color-text;
+  }
+
+  &__metrics {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: tokens.$space-3;
+    margin: 0;
+
+    @include mixins.from-tablet {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @include mixins.from-desktop {
+      grid-template-columns: repeat(5, 1fr);
+    }
+  }
+}
