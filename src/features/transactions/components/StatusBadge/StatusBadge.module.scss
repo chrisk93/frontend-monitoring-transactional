@@ -1,0 +1,20 @@
+@use 'sass:map';
+@use '../../../../styles/colors';
+@use '../../../../styles/tokens';
+
+.badge {
+  display: inline-block;
+  padding: tokens.$space-1 tokens.$space-2;
+  font-size: tokens.$font-size-sm;
+  font-weight: tokens.$font-weight-semibold;
+  line-height: 1.2;
+  white-space: nowrap;
+  border-radius: tokens.$radius-sm;
+
+  @each $status, $palette in colors.$status-colors {
+    &--#{$status} {
+      color: map.get($palette, text);
+      background-color: map.get($palette, background);
+    }
+  }
+}
