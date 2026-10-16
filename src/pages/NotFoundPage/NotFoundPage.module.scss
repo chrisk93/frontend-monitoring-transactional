@@ -1,0 +1,24 @@
+@use '../../styles/colors';
+@use '../../styles/mixins';
+@use '../../styles/tokens';
+
+.not-found {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$space-3;
+  align-items: center;
+  padding: tokens.$space-8 tokens.$space-4;
+  text-align: center;
+
+  &__title {
+    font-size: tokens.$font-size-xl;
+    color: colors.$color-primary;
+  }
+
+  &__link {
+    @include mixins.focus-ring;
+
+    font-weight: tokens.$font-weight-semibold;
+    color: colors.$color-primary;
+  }
+}
