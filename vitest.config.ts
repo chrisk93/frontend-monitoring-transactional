@@ -9,6 +9,8 @@ export default mergeConfig(
   defineConfig({
     test: {
       environment: 'jsdom',
+      // Zona horaria fija para que las pruebas de fechas sean deterministas en cualquier máquina
+      env: { TZ: 'America/Bogota' },
       setupFiles: ['./src/test/setup.ts'],
       coverage: {
         provider: 'v8',
