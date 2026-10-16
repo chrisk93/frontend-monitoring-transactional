@@ -1,6 +1,7 @@
 import { AxiosError, isAxiosError, isCancel } from 'axios'
 import { APP_ERROR_KINDS, ERROR_MESSAGES } from '../../shared/errors.ts'
 import type { AppError, AppErrorKind } from '../../shared/errors.ts'
+import { isOneOf, isRecord, isString } from '../../utils/typeGuards.ts'
 
 const TIMEOUT_CODES: readonly (string | undefined)[] = [AxiosError.ECONNABORTED, AxiosError.ETIMEDOUT]
 
@@ -17,13 +18,10 @@ const kindFromStatus = (status: number): AppErrorKind => {
   return 'unknown'
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null
+const isAppErrorKind = isOneOf(APP_ERROR_KINDS)
 
 export const isAppError = (value: unknown): value is AppError =>
-  isRecord(value) &&
-  typeof value.message === 'string' &&
-  APP_ERROR_KINDS.some((kind) => kind === value.kind)
+  isRecord(value) && isString(value.message) && isAppErrorKind(value.kind)
 
 /**
  * Manejo centralizado de errores: convierte cualquier fallo en un `AppError` con un mensaje en
