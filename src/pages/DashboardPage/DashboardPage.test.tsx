@@ -8,7 +8,7 @@ import { ERROR_MESSAGES } from '../../shared/errors.ts'
 import { renderWithProviders } from '../../test/renderWithProviders.tsx'
 import type { TransactionDto, TransactionListResponseDto } from '../../types/api.ts'
 
-// Con NOW fijo, el mes tiene 23 transacciones (2 páginas), la semana 9 y el día 3.
+// Con NOW fijo, el mes tiene 23 transacciones (2 páginas).
 const NOW = new Date('2026-07-23T14:00:00-05:00')
 
 const transactionsRegion = () => screen.getByRole('region', { name: 'Transacciones' })
@@ -39,7 +39,6 @@ describe('DashboardPage (integración)', () => {
     renderWithProviders('/')
 
     // Assert
-    expect(screen.getByRole('button', { name: 'Mensual' })).toHaveAttribute('aria-pressed', 'true')
     expect(await screen.findByText('Saldo actual')).toBeInTheDocument()
     await waitForRows(20)
     expect(screen.getByRole('navigation', { name: 'Paginación' })).toBeInTheDocument()
@@ -68,19 +67,40 @@ describe('DashboardPage (integración)', () => {
     expect(router.state.location.search).toBe('?page=2')
   })
 
-  it('al cambiar el período recarga resumen y listado y vuelve a la primera página', async () => {
+  it('pide el resumen y el listado del período mensual', async () => {
     // Arrange
-    const { router, user } = renderWithProviders('/?page=2')
-    await waitForRows(3)
+    const requestedUrls: URL[] = []
+    const onRequest = ({ request }: { request: Request }) => {
+      requestedUrls.push(new URL(request.url))
+    }
+    server.events.on('request:start', onRequest)
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Semanal' }))
+    renderWithProviders('/')
+    await waitForRows(20)
+    server.events.removeListener('request:start', onRequest)
 
     // Assert
-    await waitForRows(9)
-    expect(router.state.location.search).toBe('')
-    expect(screen.getByRole('button', { name: 'Semanal' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.queryByRole('navigation', { name: 'Paginación' })).not.toBeInTheDocument()
+    const periodsByPath = requestedUrls.map((url) => [url.pathname, url.searchParams.get('period')])
+    expect(periodsByPath).toEqual(
+      expect.arrayContaining([
+        ['/api/v1/dashboard/summary', 'monthly'],
+        ['/api/v1/dashboard/transaction/list', 'monthly'],
+      ]),
+    )
+    expect(periodsByPath.every(([, period]) => period === 'monthly')).toBe(true)
+  })
+
+  it('no muestra un selector de período', async () => {
+    // Arrange / Act
+    renderWithProviders('/')
+    await waitForRows(20)
+
+    // Assert
+    expect(screen.queryByRole('group', { name: 'Período' })).not.toBeInTheDocument()
+    for (const name of ['Diario', 'Semanal', 'Mensual']) {
+      expect(screen.queryByRole('button', { name })).not.toBeInTheDocument()
+    }
   })
 
   it('combina los filtros (AND) y vuelve a la primera página', async () => {
@@ -137,9 +157,8 @@ describe('DashboardPage (integración)', () => {
     await waitForRows(20)
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Diario' }))
-    await waitForRows(3)
     await user.selectOptions(screen.getByRole('combobox', { name: 'Tipo' }), 'Retiro')
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Estado' }), 'Devuelta')
 
     // Assert
     expect(await screen.findByText('Ninguna transacción coincide con los filtros')).toBeInTheDocument()
@@ -196,7 +215,7 @@ describe('DashboardPage (integración)', () => {
     expect(screen.getByRole('region', { name: 'Resumen ejecutivo' })).toBeInTheDocument()
   })
 
-  describe('con resultados de varias páginas en cualquier período', () => {
+  describe('con resultados de varias páginas', () => {
     const manyTransactions: TransactionDto[] = Array.from({ length: 45 }, (_, index) => ({
       id: `TXN-${String(index + 100)}`,
       dateTime: new Date(NOW.getTime() - (index + 1) * 60_000).toISOString(),
@@ -213,19 +232,6 @@ describe('DashboardPage (integración)', () => {
           HttpResponse.json<TransactionListResponseDto>({ previousBalance: 0, items: manyTransactions }),
         ),
       )
-    })
-
-    it('cambiar el período reinicia la página aunque la página actual siga existiendo', async () => {
-      // Arrange
-      const { router, user } = renderWithProviders('/?page=2')
-      await waitFor(() => expect(rowIds()[0]).toBe('TXN-120'))
-
-      // Act
-      await user.click(screen.getByRole('button', { name: 'Semanal' }))
-
-      // Assert
-      await waitFor(() => expect(router.state.location.search).toBe(''))
-      await waitFor(() => expect(rowIds()[0]).toBe('TXN-100'))
     })
 
     it('cambiar un filtro reinicia la página aunque la página actual siga existiendo', async () => {

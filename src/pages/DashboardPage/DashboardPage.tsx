@@ -3,7 +3,6 @@ import { Outlet } from 'react-router'
 import { ErrorState } from '../../components/ErrorState/ErrorState.tsx'
 import { LoadingState } from '../../components/LoadingState/LoadingState.tsx'
 import { Pagination } from '../../components/Pagination/Pagination.tsx'
-import { PeriodSelector } from '../../features/summary/components/PeriodSelector/PeriodSelector.tsx'
 import { SummaryPanel } from '../../features/summary/components/SummaryPanel/SummaryPanel.tsx'
 import { TransactionFilters } from '../../features/transactions/components/TransactionFilters/TransactionFilters.tsx'
 import { TransactionTable } from '../../features/transactions/components/TransactionTable/TransactionTable.tsx'
@@ -13,13 +12,12 @@ import { usePageParam } from '../../hooks/usePageParam.ts'
 import type { Period, TransactionFilters as Filters } from '../../types/domain.ts'
 import styles from './DashboardPage.module.scss'
 
-const DEFAULT_PERIOD: Period = 'monthly'
+const PERIOD: Period = 'monthly'
 
 export const DashboardPage = () => {
-  const [period, setPeriod] = useState<Period>(DEFAULT_PERIOD)
   const [filters, setFilters] = useState<Filters>({})
   const { page, setPage } = usePageParam()
-  const { data, status, error, retry } = useTransactions(period)
+  const { data, status, error, retry } = useTransactions(PERIOD)
   const { items, currentPage, totalPages, emptyReason } = useVisibleTransactions(filters, page)
   const listTitleId = useId()
 
@@ -27,11 +25,6 @@ export const DashboardPage = () => {
   useEffect(() => {
     if (status === 'succeeded' && currentPage !== page) setPage(currentPage, { replace: true })
   }, [status, currentPage, page, setPage])
-
-  const changePeriod = (nextPeriod: Period) => {
-    setPeriod(nextPeriod)
-    setPage(1)
-  }
 
   const changeFilters = (nextFilters: Filters) => {
     setFilters(nextFilters)
@@ -52,9 +45,7 @@ export const DashboardPage = () => {
 
   return (
     <div className={styles.dashboard}>
-      <PeriodSelector value={period} onChange={changePeriod} />
-
-      <SummaryPanel period={period} />
+      <SummaryPanel period={PERIOD} />
 
       <section className={styles['dashboard__transactions']} aria-labelledby={listTitleId}>
         <h2 id={listTitleId} className={styles['dashboard__title']}>

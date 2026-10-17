@@ -1,9 +1,4 @@
-import type {
-  Channel,
-  Period,
-  TransactionStatus,
-  TransactionType,
-} from '../types/domain.ts'
+import type { Channel, TransactionStatus, TransactionType } from '../types/domain.ts'
 
 // DP-7: la API usa códigos en inglés; la UI los muestra en español.
 
@@ -26,10 +21,4 @@ export const CHANNEL_LABELS: Record<Channel, string> = {
   WEB: 'Web',
   POINT_OF_SALE: 'Punto de Venta',
   BANK_TRANSFER: 'Transferencia bancaria',
-}
-
-export const PERIOD_LABELS: Record<Period, string> = {
-  daily: 'Diario',
-  weekly: 'Semanal',
-  monthly: 'Mensual',
 }

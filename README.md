@@ -4,7 +4,7 @@ Aplicación web para que los clientes empresariales de una plataforma de banca e
 analicen sus movimientos financieros**: resumen ejecutivo del período, listado de transacciones con
 filtros y paginación, y detalle completo de cada transacción con su historial de estados.
 
-Construida con **React 19 + TypeScript estricto**, estado global con **Context API + Reducers**, consumo
+Construida con **React 19 + TypeScript**, estado global con **Context API + Reducers**, consumo
 de API REST con **Axios** y una API simulada con **MSW**, por lo que se ejecuta **sin ningún backend ni
 dependencia externa**.
 
@@ -42,7 +42,7 @@ dependencia externa**.
 
 | Requerimiento | Descripción |
 |---|---|
-| **RF-01 · Resumen ejecutivo** | Saldo actual, total de transacciones, pendientes por aprobar, ingresos y egresos del período. Período seleccionable: **Diario / Semanal / Mensual** |
+| **RF-01 · Resumen ejecutivo** | Saldo actual, total de transacciones, pendientes por aprobar, ingresos y egresos del período. Período fijo: **mensual** (sin selector) |
 | **RF-02 · Listado con filtros** | Tabla con ID, fecha y hora, tipo, descripción, monto, moneda y estado. Filtros combinables (AND) por **rango de fechas**, **tipo** y **estado**. Paginación de **20 registros** por página |
 | **RF-03 · Detalle de transacción** | Modal con todos los campos, canal, número de autorización, comprobante e **historial de cambios de estado** |
 
@@ -170,9 +170,9 @@ VITE_USE_MOCKS=false VITE_API_BASE_URL=https://api.ejemplo.com/v1 yarn dev
 
 | Métrica | Valor |
 |---|---|
-| Archivos de prueba | **41** |
-| Pruebas | **314** |
-| Cobertura total | 98,1 % líneas · 95,3 % sentencias · 90,9 % ramas · 98,8 % funciones |
+| Archivos de prueba | **40** |
+| Pruebas | **311** |
+| Cobertura total | 98,1 % líneas · 94,7 % sentencias · 89,6 % ramas · 98,8 % funciones |
 | Cobertura con umbral (≥ 80 %) | `domain/` 100 % · `utils/` 100 % · `services/` 100 % líneas |
 
 ### Cómo ejecutar las pruebas
@@ -311,7 +311,7 @@ src/
 │   └── NotFoundPage/        # 404
 ├── features/
 │   ├── summary/             # RF-01
-│   │   ├── components/      # PeriodSelector, SummaryCard, SummaryPanel
+│   │   ├── components/      # SummaryCard, SummaryPanel
 │   │   └── hooks/           # useSummary
 │   └── transactions/        # RF-02 y RF-03
 │       ├── components/      # TransactionTable, TransactionFilters, TransactionDetailModal,
@@ -359,7 +359,6 @@ docs/
 
 | Componente | Feature | Responsabilidad |
 |---|---|---|
-| `PeriodSelector` | summary | Diario / Semanal / Mensual con `aria-pressed` |
 | `SummaryCard` | summary | Una métrica (`<dt>` / `<dd>`) |
 | `SummaryPanel` | summary | Las 5 métricas de RF-01, tal como llegan del backend, formateadas |
 | `TransactionFilters` | transactions | Desde / Hasta / Tipo / Estado; avisa si el rango está invertido |
@@ -375,7 +374,7 @@ docs/
 | `AppLayout` | Encabezado y área principal |
 | `AppErrorBoundary` / `UnexpectedError` | Captura errores de render (fuera y dentro de las rutas) |
 | `AppProviders` | `TransactionsProvider` |
-| `DashboardPage` | Compone período, resumen, filtros, listado, paginación y el modal (`<Outlet/>`) |
+| `DashboardPage` | Usa el período fijo mensual y compone resumen, filtros, listado, paginación y el modal (`<Outlet/>`) |
 | `TransactionDetailRoute` | Ruta hija: lee `:transactionId` y cierra volviendo atrás o al dashboard conservando `?page` |
 | `NotFoundPage` | Página 404 con enlace al dashboard |
 
@@ -388,12 +387,12 @@ docs/
 | **Global** (transacciones del período) | Context API + `useReducer`, contextos de **estado** y **dispatch** separados | `TransactionsContext` |
 | Resumen y detalle (una sola vista) | `useReducer` local dentro de su hook (DP-15) | `useSummary`, `useTransactionDetail` |
 | Paginación | Query param `?page` | `usePageParam` |
-| Período y filtros | `useState` en la página / formulario | `DashboardPage`, `TransactionFilters` |
+| Filtros | `useState` en la página / formulario | `DashboardPage`, `TransactionFilters` |
 | Modal de detalle | Ruta hija de React Router | `TransactionDetailRoute` |
 
 | Hook | Rol |
 |---|---|
-| `useTransactions(period)` | Carga el listado en el contexto global; cancela la petición anterior al cambiar el período; `retry()` |
+| `useTransactions(period)` | Carga el listado en el contexto global; cancela la petición anterior si cambia el período o se desmonta; `retry()` |
 | `useTransactionsState()` / `useTransactionsDispatch()` | Leen el contexto; error descriptivo si se usan fuera del Provider |
 | `useVisibleTransactions(filters, page)` | **Selector**: filtra (RN-03) → pagina, devuelve la página ajustada y el motivo de lista vacía |
 | `useSummary(period)` | Carga el resumen en estado local, con cancelación y `retry()` |
@@ -417,9 +416,9 @@ El proyecto usa **React Compiler**, por lo que no hay `useMemo`/`useCallback` ma
 *                               → NotFoundPage
 ```
 
-- **Solo `page` va en la URL** (DP-2); período y filtros son estado local de UI, como indica el SPEC.
+- **Solo `page` va en la URL** (DP-2); los filtros son estado local de UI, como indica el SPEC.
 - `?page=abc`, `0`, `-2`, `1.5` → página 1. La página 1 no se escribe (`/` en vez de `/?page=1`).
-- Cambiar el período o un filtro **reinicia** la paginación.
+- Cambiar un filtro **reinicia** la paginación.
 - Una página fuera de rango (`?page=99`) se **ajusta** a la última con `replace` (sin ensuciar el
   historial), solo después de cargar los datos.
 - El detalle conserva `?page` al abrir y cerrar. Si se llegó desde el listado, cerrar vuelve atrás en el
@@ -575,8 +574,8 @@ y `public/mockServiceWorker.js` (generado con `npx msw init public`).
 
 **Accesibilidad**
 
-- Roles y nombres accesibles: `dialog`, `alert`, `status`, `navigation`, `region`, `group`.
-- `aria-pressed` en el selector de período, `aria-current` en la paginación, `aria-invalid` y
+- Roles y nombres accesibles: `dialog`, `alert`, `status`, `navigation`, `region`.
+- `aria-current` en la paginación, `aria-invalid` y
   `aria-describedby` en el rango de fechas inválido, `aria-busy` durante la carga.
 - El estado se comunica con **texto además de color**.
 - Foco visible con teclado (`:focus-visible`), el modal mueve el foco al abrirse y lo devuelve al cerrarse.
@@ -632,7 +631,7 @@ librerías de fechas (`Intl` + `Date`), de validación (type guards propios), de
 |---|---|---|
 | Context + `useReducer` (sin Redux) | Cumple el SPEC, cero dependencias, reducers puros | Sin DevTools; se mitigan re-renders con contextos separados y React Compiler |
 | Resumen y detalle en estado local | Menos estado global, responsabilidades claras | Si otra vista necesitara el resumen habría que elevarlo |
-| Solo `page` en la URL | URL mínima; período y filtros como estado local (SPEC) | Al recargar se pierden período y filtros |
+| Solo `page` en la URL | URL mínima; filtros como estado local (SPEC) | Al recargar se pierden los filtros |
 | Filtrado y paginación en el cliente | Simple, sin peticiones extra (definido en el SPEC) | El rango de fechas solo recorre el período cargado |
 | Detalle como ruta hija en modal | URL compartible; "atrás" cierra el modal | Algo más de configuración de rutas |
 | MSW como API simulada | Mismos handlers en app y pruebas; sin código de mock en los componentes | Requiere `mockServiceWorker.js` en `public/` |
@@ -644,7 +643,7 @@ librerías de fechas (`Intl` + `Date`), de validación (type guards propios), de
 
 | # | Decisión |
 |---|---|
-| DP-1 | Período por defecto: **mensual** |
+| DP-1 | Período fijo: **mensual** (sin selector) |
 | DP-2 | Solo `page` en la URL |
 | DP-4 / DP-5 | Datos mock relativos a la fecha actual + ~40 generados |
 | DP-6 | Monto inválido: se muestra marcado y no suma al saldo |
@@ -653,7 +652,7 @@ librerías de fechas (`Intl` + `Date`), de validación (type guards propios), de
 | DP-9 | Cobertura mínima del 80 % en dominio, utils y services |
 | DP-10 | Montos como `number` con redondeo a 2 decimales |
 | DP-11 | La semana inicia el **lunes** |
-| DP-12 | "Pendientes por aprobar" del período seleccionado |
+| DP-12 | "Pendientes por aprobar" del período mensual |
 | DP-14 | Mocks activos por defecto también en el build |
 | DP-15 | Estado global solo para transacciones |
 | A1 | El backend entrega todo el resumen, incluido el saldo actual |
@@ -675,24 +674,23 @@ El proyecto se construyó con **Spec-Driven Development**:
 1. [`docs/specs/SPEC.md`](docs/specs/SPEC.md): requerimientos funcionales, reglas de negocio y
    requisitos técnicos, revisados y depurados (alcance, ambigüedades e inconsistencias).
 2. [`docs/design/DESIGN.md`](docs/design/DESIGN.md): diseño técnico aprobado antes de escribir código.
-3. [`docs/tasks/TASKS.md`](docs/tasks/TASKS.md): 33 tareas pequeñas, ordenadas por dependencias, cada
+3. [`docs/tasks/TASKS.md`](docs/tasks/TASKS.md): 34 tareas pequeñas, ordenadas por dependencias, cada
    una con alcance, archivos, pruebas y criterio de aceptación verificable. Cada tarea se implementó,
    verificó (pruebas, tipos, lint, build) y aprobó antes de pasar a la siguiente.
 
 La validación final incluyó el build de producción recorrido en un navegador real (Chrome headless):
-cambio de período, filtros combinados, paginación con recarga, detalle desde la tabla y por URL,
+filtros combinados, paginación con recarga, detalle desde la tabla y por URL,
 ruta inexistente y vista mobile a 375 px, sin errores en consola.
 
 ---
 
 ## 21. Limitaciones conocidas
 
-- **Filtro de fechas local**: solo recorre las transacciones del período cargado (por ejemplo, en
-  "Mensual" no se pueden consultar fechas del mes anterior).
-- **Al recargar** se conservan la página y el detalle abierto, pero el período vuelve a "Mensual" y los
-  filtros se limpian.
+- **Filtro de fechas local**: solo recorre las transacciones del período cargado (por ejemplo, no se
+  pueden consultar fechas del mes anterior).
+- **Al recargar** se conservan la página y el detalle abierto, pero los filtros se limpian.
 - **Datos simulados**: se calculan al cargar la app; si la pestaña queda abierta varios días no avanzan
-  con el reloj. Entre las 00:00 y las 00:05 el período diario puede quedar vacío.
+  con el reloj. Entre las 00:00 y las 00:05 del primer día del mes el listado puede quedar vacío.
 - **Modal**: no atrapa el foco (con Tab se puede llegar al contenido de fondo) ni bloquea el scroll del
   fondo.
 - **Desarrollo**: con `StrictMode` cada petición aparece dos veces en la consola de MSW (la primera se
