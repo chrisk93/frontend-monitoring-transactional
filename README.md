@@ -33,8 +33,6 @@ dependencia externa**.
 17. [Seguridad](#17-seguridad)
 18. [Tecnologías utilizadas](#18-tecnologías-utilizadas)
 19. [Decisiones de diseño y trade-offs](#19-decisiones-de-diseño-y-trade-offs)
-20. [Proceso de desarrollo (SDD)](#20-proceso-de-desarrollo-sdd)
-21. [Limitaciones conocidas](#21-limitaciones-conocidas)
 
 ---
 
@@ -333,10 +331,6 @@ src/
 ├── styles/                  # Tokens SCSS (colores, tipografía, espaciado, breakpoints, mixins)
 ├── mocks/                   # Backend simulado: fixtures, handlers, períodos, RN-02, worker/server
 └── test/                    # Setup de Vitest y renderWithProviders
-docs/
-├── specs/SPEC.md            # Especificación
-├── design/DESIGN.md         # Diseño técnico
-├── tasks/TASKS.md           # Plan de implementación y estado de cada tarea
 └── screenshots/             # Capturas usadas en este README
 ```
 
@@ -416,7 +410,7 @@ El proyecto usa **React Compiler**, por lo que no hay `useMemo`/`useCallback` ma
 *                               → NotFoundPage
 ```
 
-- **Solo `page` va en la URL** (DP-2); los filtros son estado local de UI, como indica el SPEC.
+- **Solo `page` va en la URL** (DP-2); los filtros son estado local de UI.
 - `?page=abc`, `0`, `-2`, `1.5` → página 1. La página 1 no se escribe (`/` en vez de `/?page=1`).
 - Cambiar un filtro **reinicia** la paginación.
 - Una página fuera de rango (`?page=99`) se **ajusta** a la última con `replace` (sin ensuciar el
@@ -428,7 +422,7 @@ El proyecto usa **React Compiler**, por lo que no hay `useMemo`/`useCallback` ma
 
 ## 13. Capa de API y manejo de errores
 
-### Endpoints (SPEC)
+### Endpoints
 
 | Función | Endpoint |
 |---|---|
@@ -525,7 +519,7 @@ El entregable exige ejecutar sin dependencias externas, por eso la API se simula
 **Mock Service Worker**: los mismos handlers sirven en el navegador (Service Worker) y en las pruebas
 (Node).
 
-- **Fixtures**: las 6 transacciones del SPEC (TXN-001 a TXN-006) **trasladadas a la fecha actual**
+- **Fixtures**: **trasladadas a la fecha actual**
   conservando la distancia entre ellas (DP-4), más **40 transacciones generadas** para ejercitar la
   paginación (DP-5). La generación es **determinista**, sin `Math.random` (A5).
 - **Períodos**: hoy, esta semana (**desde el lunes**, DP-11) y este mes, en la zona horaria local.
@@ -592,7 +586,6 @@ y `public/mockServiceWorker.js` (generado con `npx msw init public`).
 - **Sin secretos en el código**: las variables `VITE_*` solo contienen valores públicos.
 - **TypeScript estricto** y ESLint con `no-explicit-any` en error; ningún `@ts-ignore` ni
   `eslint-disable` en el código.
-- Sin autenticación ni sesión: el SPEC no requiere login.
 
 ---
 
@@ -620,79 +613,18 @@ y `public/mockServiceWorker.js` (generado con `npx msw init public`).
 | `msw` | 3.0 | API simulada en el navegador y en las pruebas |
 | `eslint` + `typescript-eslint` + plugins de React | 10 / 8 | Análisis estático |
 
-**Descartadas a propósito (YAGNI)**: Redux / Zustand (Context + `useReducer` es lo que pide el SPEC),
-librerías de fechas (`Intl` + `Date`), de validación (type guards propios), de UI y de tablas.
-
 ---
 
 ## 19. Decisiones de diseño y trade-offs
 
 | Decisión | A favor | En contra |
 |---|---|---|
-| Context + `useReducer` (sin Redux) | Cumple el SPEC, cero dependencias, reducers puros | Sin DevTools; se mitigan re-renders con contextos separados y React Compiler |
+| Context + `useReducer` (sin Redux) | cero dependencias, reducers puros | Sin DevTools; se mitigan re-renders con contextos separados y React Compiler |
 | Resumen y detalle en estado local | Menos estado global, responsabilidades claras | Si otra vista necesitara el resumen habría que elevarlo |
-| Solo `page` en la URL | URL mínima; filtros como estado local (SPEC) | Al recargar se pierden los filtros |
-| Filtrado y paginación en el cliente | Simple, sin peticiones extra (definido en el SPEC) | El rango de fechas solo recorre el período cargado |
+| Solo `page` en la URL | URL mínima; filtros como estado local | Al recargar se pierden los filtros |
+| Filtrado y paginación en el cliente | Simple, sin peticiones extra | El rango de fechas solo recorre el período cargado |
 | Detalle como ruta hija en modal | URL compartible; "atrás" cierra el modal | Algo más de configuración de rutas |
 | MSW como API simulada | Mismos handlers en app y pruebas; sin código de mock en los componentes | Requiere `mockServiceWorker.js` en `public/` |
 | Montos como `number` | Simple; con máx. 10M y 2 decimales no hay errores visibles | En un sistema real convendría usar centavos enteros |
 | SCSS Modules + BEM | Estilos aislados y legibles | BEM es parcialmente redundante con CSS Modules |
 | Tabla → tarjetas en mobile (solo CSS) | Responsive real sin scroll horizontal | Algunos lectores de pantalla pueden no anunciar la vista mobile como tabla |
-
-### Decisiones no definidas en el SPEC
-
-| # | Decisión |
-|---|---|
-| DP-1 | Período fijo: **mensual** (sin selector) |
-| DP-2 | Solo `page` en la URL |
-| DP-4 / DP-5 | Datos mock relativos a la fecha actual + ~40 generados |
-| DP-6 | Monto inválido: se muestra marcado y no suma al saldo |
-| DP-7 | Códigos de la API en inglés; etiquetas en español |
-| DP-8 | Botón **Reintentar** en los errores |
-| DP-9 | Cobertura mínima del 80 % en dominio, utils y services |
-| DP-10 | Montos como `number` con redondeo a 2 decimales |
-| DP-11 | La semana inicia el **lunes** |
-| DP-12 | "Pendientes por aprobar" del período mensual |
-| DP-14 | Mocks activos por defecto también en el build |
-| DP-15 | Estado global solo para transacciones |
-| A1 | El backend entrega todo el resumen, incluido el saldo actual |
-| A2 | Rango de fechas inclusivo; invertido → aviso y se ignora |
-| A3 | Orden descendente tal como lo entrega la API |
-| A4 | Paginación oculta con una sola página |
-| A5 | Datos mock deterministas |
-| A6 | Respuesta inválida → "La respuesta del servicio no es válida" |
-| A7 | Fechas en la zona horaria del navegador |
-
-El detalle y la justificación de cada decisión están en [`docs/design/DESIGN.md`](docs/design/DESIGN.md).
-
----
-
-## 20. Proceso de desarrollo (SDD)
-
-El proyecto se construyó con **Spec-Driven Development**:
-
-1. [`docs/specs/SPEC.md`](docs/specs/SPEC.md): requerimientos funcionales, reglas de negocio y
-   requisitos técnicos, revisados y depurados (alcance, ambigüedades e inconsistencias).
-2. [`docs/design/DESIGN.md`](docs/design/DESIGN.md): diseño técnico aprobado antes de escribir código.
-3. [`docs/tasks/TASKS.md`](docs/tasks/TASKS.md): 34 tareas pequeñas, ordenadas por dependencias, cada
-   una con alcance, archivos, pruebas y criterio de aceptación verificable. Cada tarea se implementó,
-   verificó (pruebas, tipos, lint, build) y aprobó antes de pasar a la siguiente.
-
-La validación final incluyó el build de producción recorrido en un navegador real (Chrome headless):
-filtros combinados, paginación con recarga, detalle desde la tabla y por URL,
-ruta inexistente y vista mobile a 375 px, sin errores en consola.
-
----
-
-## 21. Limitaciones conocidas
-
-- **Filtro de fechas local**: solo recorre las transacciones del período cargado (por ejemplo, no se
-  pueden consultar fechas del mes anterior).
-- **Al recargar** se conservan la página y el detalle abierto, pero los filtros se limpian.
-- **Datos simulados**: se calculan al cargar la app; si la pestaña queda abierta varios días no avanzan
-  con el reloj. Entre las 00:00 y las 00:05 del primer día del mes el listado puede quedar vacío.
-- **Modal**: no atrapa el foco (con Tab se puede llegar al contenido de fondo) ni bloquea el scroll del
-  fondo.
-- **Desarrollo**: con `StrictMode` cada petición aparece dos veces en la consola de MSW (la primera se
-  cancela); no ocurre en producción.
-- `public/mockServiceWorker.js` debe regenerarse (`npx msw init public`) si se actualiza MSW.
