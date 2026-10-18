@@ -251,7 +251,7 @@ puede no alcanzar el umbral: los umbrales están pensados para la suite completa
 
 ## 8. Arquitectura
 
-SPA organizada **por features**, con capas de dependencia **unidireccional**:
+SPA organizada **por features**, con capas de dependencia:
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
