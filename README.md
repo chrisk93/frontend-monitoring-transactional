@@ -51,8 +51,6 @@ Además:
 - El detalle tiene **URL propia** (`/transactions/TXN-005`) y se puede abrir directamente.
 - **Diseño responsive**: la tabla se convierte en tarjetas en mobile.
 
-Fuera de alcance (según el SPEC): alertas, actualización en tiempo real, reportes y monedas distintas a COP.
-
 ---
 
 ## 2. Capturas de pantalla
@@ -289,7 +287,6 @@ Transversal: dominio puro (reglas de negocio) y utilidades sin React.
   services comunican, mappers validan, dominio decide).
 - **DRY**: lógica de carga compartida (`createAsyncReducer`, `runCancellableRequest`), type guards
   genéricos, tokens de estilo y etiquetas centralizadas.
-- **KISS / YAGNI**: sin Redux, sin librerías de UI, de fechas ni de validación; solo lo que exige el SPEC.
 - **Inmutabilidad y programación funcional**: reducers puros, funciones de dominio puras que nunca
   mutan su entrada (verificado en pruebas).
 
